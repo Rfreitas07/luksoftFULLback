@@ -29,6 +29,16 @@ let User = class User {
     position;
     role;
     createdAt;
+    timesheetData;
+    currentWeekHours;
+    dailyTargetMinutes;
+    currentWeekStart;
+    weekStatus;
+    isFirstAccess;
+    passwordResetToken;
+    passwordResetExpires;
+    lastPasswordChange;
+    updatedAt;
 };
 exports.User = User;
 __decorate([
@@ -99,7 +109,47 @@ __decorate([
     (0, typeorm_1.CreateDateColumn)(),
     __metadata("design:type", Date)
 ], User.prototype, "createdAt", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ type: 'jsonb', nullable: true }),
+    __metadata("design:type", Object)
+], User.prototype, "timesheetData", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ default: 0 }),
+    __metadata("design:type", Number)
+], User.prototype, "currentWeekHours", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ default: 480 }),
+    __metadata("design:type", Number)
+], User.prototype, "dailyTargetMinutes", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ type: 'date', nullable: true }),
+    __metadata("design:type", Date)
+], User.prototype, "currentWeekStart", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ type: 'jsonb', nullable: true, default: {} }),
+    __metadata("design:type", Object)
+], User.prototype, "weekStatus", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ default: true }),
+    __metadata("design:type", Boolean)
+], User.prototype, "isFirstAccess", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ nullable: true }),
+    __metadata("design:type", String)
+], User.prototype, "passwordResetToken", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ type: 'timestamp', nullable: true }),
+    __metadata("design:type", Date)
+], User.prototype, "passwordResetExpires", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ type: 'timestamp', nullable: true }),
+    __metadata("design:type", Date)
+], User.prototype, "lastPasswordChange", void 0);
+__decorate([
+    (0, typeorm_1.UpdateDateColumn)(),
+    __metadata("design:type", Date)
+], User.prototype, "updatedAt", void 0);
 exports.User = User = __decorate([
-    (0, typeorm_1.Entity)()
+    (0, typeorm_1.Entity)('user')
 ], User);
 //# sourceMappingURL=user.entity.js.map

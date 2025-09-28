@@ -16,4 +16,14 @@ export declare class User {
     position?: string;
     role: string;
     createdAt: Date;
+    timesheetData?: any;
+    currentWeekHours?: number;
+    dailyTargetMinutes?: number;
+    currentWeekStart?: Date;
+    weekStatus?: Record<string, string>;
+    isFirstAccess: boolean;
+    passwordResetToken?: string;
+    passwordResetExpires?: Date;
+    lastPasswordChange?: Date;
+    updatedAt: Date;
 }

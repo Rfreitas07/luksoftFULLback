@@ -21,6 +21,8 @@ const upload_avatar_dto_1 = require("./upload-avatar.dto");
 const update_profile_dto_1 = require("./update-profile.dto");
 const multer_1 = require("multer");
 const path_1 = require("path");
+const timesheet_dto_1 = require("./timesheet.dto");
+const week_status_dto_1 = require("./week-status.dto");
 let UsersController = class UsersController {
     usersService;
     constructor(usersService) {
@@ -58,6 +60,24 @@ let UsersController = class UsersController {
             avatarPath: avatarPath,
             user: updatedUser,
         };
+    }
+    async saveTimesheet(req, saveTimesheetDto) {
+        const userId = Number(req.user.userId);
+        return this.usersService.saveTimesheet(userId, saveTimesheetDto);
+    }
+    async getWeekTimesheet(req, weekOffset) {
+        const userId = Number(req.user.userId);
+        const offset = weekOffset ? Number(weekOffset) : 0;
+        console.log('DEBUG: weekOffset recebido:', weekOffset);
+        console.log('DEBUG: offset convertido:', offset);
+        return this.usersService.getWeekTimesheetWithOffset(userId, offset);
+    }
+    async updateWeekStatus(req, updateWeekStatusDto) {
+        const userId = Number(req.user.userId);
+        return this.usersService.updateWeekStatus(userId, updateWeekStatusDto, req.user.role);
+    }
+    async testTimesheet() {
+        return { message: 'Timesheet endpoint funcionando', timestamp: new Date() };
     }
 };
 exports.UsersController = UsersController;
@@ -117,6 +137,39 @@ __decorate([
     __metadata("design:paramtypes", [Object, upload_avatar_dto_1.UploadAvatarDto]),
     __metadata("design:returntype", Promise)
 ], UsersController.prototype, "uploadAvatar", null);
+__decorate([
+    (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard),
+    (0, common_1.Put)('timesheet'),
+    __param(0, (0, common_1.Request)()),
+    __param(1, (0, common_1.Body)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object, timesheet_dto_1.SaveTimesheetDto]),
+    __metadata("design:returntype", Promise)
+], UsersController.prototype, "saveTimesheet", null);
+__decorate([
+    (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard),
+    (0, common_1.Get)('timesheet'),
+    __param(0, (0, common_1.Request)()),
+    __param(1, (0, common_1.Query)('weekOffset')),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object, String]),
+    __metadata("design:returntype", Promise)
+], UsersController.prototype, "getWeekTimesheet", null);
+__decorate([
+    (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard),
+    (0, common_1.Post)('timesheet/week-status'),
+    __param(0, (0, common_1.Request)()),
+    __param(1, (0, common_1.Body)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object, week_status_dto_1.UpdateWeekStatusDto]),
+    __metadata("design:returntype", Promise)
+], UsersController.prototype, "updateWeekStatus", null);
+__decorate([
+    (0, common_1.Get)('test-timesheet'),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", []),
+    __metadata("design:returntype", Promise)
+], UsersController.prototype, "testTimesheet", null);
 exports.UsersController = UsersController = __decorate([
     (0, common_1.Controller)('users'),
     __metadata("design:paramtypes", [users_service_1.UsersService])

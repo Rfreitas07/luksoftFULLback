@@ -1,6 +1,6 @@
-import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn } from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn } from 'typeorm';
 
-@Entity()
+@Entity('user')
 export class User {
   @PrimaryGeneratedColumn()
   id: number;
@@ -52,4 +52,36 @@ export class User {
 
   @CreateDateColumn()
   createdAt: Date;
+
+  // Campos de timesheet existentes (mantidos)
+  @Column({ type: 'jsonb', nullable: true })
+  timesheetData?: any;
+
+  @Column({ default: 0 })
+  currentWeekHours?: number;
+
+  @Column({ default: 480 })
+  dailyTargetMinutes?: number;
+
+  @Column({ type: 'date', nullable: true })
+  currentWeekStart?: Date;
+
+  @Column({ type: 'jsonb', nullable: true, default: {} })
+  weekStatus?: Record<string, string>;
+
+  // NOVOS CAMPOS PARA AUTENTICAÇÃO AVANÇADA
+  @Column({ default: true })
+  isFirstAccess: boolean;
+
+  @Column({ nullable: true })
+  passwordResetToken?: string;
+
+  @Column({ type: 'timestamp', nullable: true })
+  passwordResetExpires?: Date;
+
+  @Column({ type: 'timestamp', nullable: true })
+  lastPasswordChange?: Date;
+
+  @UpdateDateColumn()
+  updatedAt: Date;
 }

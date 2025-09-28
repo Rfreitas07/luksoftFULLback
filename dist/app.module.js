@@ -12,6 +12,9 @@ const typeorm_1 = require("@nestjs/typeorm");
 const config_1 = require("@nestjs/config");
 const auth_module_1 = require("./auth/auth.module");
 const users_module_1 = require("./users/users.module");
+const projects_module_1 = require("./projects/projects.module");
+const user_entity_1 = require("./users/entities/user.entity");
+const project_entity_1 = require("./projects/entities/project.entity");
 let AppModule = class AppModule {
 };
 exports.AppModule = AppModule;
@@ -26,11 +29,12 @@ exports.AppModule = AppModule = __decorate([
                 username: process.env.DB_USERNAME || 'postgres',
                 password: process.env.DB_PASSWORD || 'password',
                 database: process.env.DB_DATABASE || 'myapp',
-                autoLoadEntities: true,
+                entities: [user_entity_1.User, project_entity_1.Project],
                 synchronize: true,
             }),
             auth_module_1.AuthModule,
             users_module_1.UsersModule,
+            projects_module_1.ProjectsModule,
         ],
     })
 ], AppModule);

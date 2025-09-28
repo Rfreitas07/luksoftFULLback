@@ -1,3 +1,4 @@
+/* eslint-disable prettier/prettier */
 import { 
   Controller, 
   Get, 
@@ -10,7 +11,8 @@ import {
   UseInterceptors,
   Body,
   BadRequestException,
-  ParseIntPipe
+  ParseIntPipe,
+  Query
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { UsersService } from './users.service';
@@ -19,6 +21,8 @@ import { UploadAvatarDto } from './upload-avatar.dto';
 import { UpdateProfileDto } from './update-profile.dto';
 import { diskStorage } from 'multer';
 import { extname } from 'path';
+import { SaveTimesheetDto } from './timesheet.dto';
+import { UpdateWeekStatusDto } from './week-status.dto';
 
 @Controller('users')
 export class UsersController {
@@ -121,5 +125,52 @@ export class UsersController {
       avatarPath: avatarPath,
       user: updatedUser,
     };
+  }
+
+  // Endpoints de Timesheet
+  @UseGuards(JwtAuthGuard)
+  @Put('timesheet')
+  async saveTimesheet(
+    @Request() req,
+    @Body() saveTimesheetDto: SaveTimesheetDto,
+  ) {
+    const userId = Number(req.user.userId);
+    return this.usersService.saveTimesheet(userId, saveTimesheetDto);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Get('timesheet')
+  async getWeekTimesheet(
+    @Request() req,
+    @Query('weekOffset') weekOffset?: string
+  ) {
+    const userId = Number(req.user.userId);
+    const offset = weekOffset ? Number(weekOffset) : 0;
+    
+    console.log('DEBUG: weekOffset recebido:', weekOffset);
+    console.log('DEBUG: offset convertido:', offset);
+    
+    return this.usersService.getWeekTimesheetWithOffset(userId, offset);
+  }
+
+  // Novo endpoint para atualizar status da semana
+  @UseGuards(JwtAuthGuard)
+  @Post('timesheet/week-status')
+  async updateWeekStatus(
+    @Request() req,
+    @Body() updateWeekStatusDto: UpdateWeekStatusDto,
+  ) {
+    const userId = Number(req.user.userId);
+    
+    return this.usersService.updateWeekStatus(
+      userId, 
+      updateWeekStatusDto, 
+      req.user.role
+    );
+  }
+
+  @Get('test-timesheet')
+  async testTimesheet() {
+    return { message: 'Timesheet endpoint funcionando', timestamp: new Date() };
   }
 }

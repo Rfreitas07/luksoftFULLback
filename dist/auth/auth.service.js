@@ -47,6 +47,7 @@ const common_1 = require("@nestjs/common");
 const jwt_1 = require("@nestjs/jwt");
 const users_service_1 = require("../users/users.service");
 const bcrypt = __importStar(require("bcryptjs"));
+const crypto = __importStar(require("crypto"));
 let AuthService = class AuthService {
     usersService;
     jwtService;
@@ -71,10 +72,93 @@ let AuthService = class AuthService {
         if (!user || !(await bcrypt.compare(loginDto.password, user.password))) {
             throw new common_1.UnauthorizedException('Credenciais inválidas');
         }
-        const payload = { email: user.email, sub: user.id };
+        const isFirstAccess = user.isFirstAccess || loginDto.password === '123456';
+        const payload = { email: user.email, sub: user.id, role: user.role };
         return {
             access_token: this.jwtService.sign(payload),
-            user: { id: user.id, email: user.email, name: user.name },
+            user: {
+                id: user.id,
+                email: user.email,
+                name: user.name,
+                isFirstAccess
+            },
+        };
+    }
+    async forgotPassword(email) {
+        const user = await this.usersService.findByEmail(email);
+        if (!user) {
+            throw new common_1.NotFoundException('Usuário não encontrado');
+        }
+        const resetToken = crypto.randomBytes(32).toString('hex');
+        const hashedToken = await bcrypt.hash(resetToken, 10);
+        const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000);
+        await this.usersService.savePasswordResetToken(user.id, hashedToken, expiresAt);
+        const resetUrl = `http://localhost:3001/reset-password/${resetToken}`;
+        return {
+            message: 'Token gerado com sucesso',
+            resetToken,
+            resetUrl,
+            expiresAt
+        };
+    }
+    async validateResetToken(token) {
+        const user = await this.usersService.findByPasswordResetToken(token);
+        if (!user) {
+            throw new common_1.BadRequestException('Token inválido');
+        }
+        if (!user.passwordResetExpires || user.passwordResetExpires < new Date()) {
+            throw new common_1.BadRequestException('Token expirado');
+        }
+        return {
+            message: 'Token válido',
+            email: user.email,
+            valid: true
+        };
+    }
+    async resetPassword(token, newPassword) {
+        const user = await this.usersService.findByPasswordResetToken(token);
+        if (!user) {
+            throw new common_1.BadRequestException('Token inválido ou expirado');
+        }
+        if (!user.passwordResetExpires || user.passwordResetExpires < new Date()) {
+            throw new common_1.BadRequestException('Token expirado');
+        }
+        const hashedPassword = await bcrypt.hash(newPassword, 10);
+        await this.usersService.updatePasswordAndClearToken(user.id, hashedPassword);
+        return {
+            message: 'Senha alterada com sucesso'
+        };
+    }
+    async changePassword(data, requestUserId, requestUserRole) {
+        const targetUserId = data.targetUserId || requestUserId;
+        const user = await this.usersService.findById(targetUserId);
+        if (!user) {
+            throw new common_1.NotFoundException('Usuário não encontrado');
+        }
+        if (targetUserId !== requestUserId && requestUserRole !== 'admin') {
+            throw new common_1.UnauthorizedException('Você não tem permissão para alterar a senha deste usuário');
+        }
+        if (data.isFirstAccess || user.isFirstAccess) {
+            if (data.currentPassword && !(await bcrypt.compare(data.currentPassword, user.password))) {
+                throw new common_1.BadRequestException('Senha atual incorreta');
+            }
+        }
+        else {
+            if (targetUserId === requestUserId && !data.currentPassword) {
+                throw new common_1.BadRequestException('Senha atual é obrigatória');
+            }
+            if (data.currentPassword && !(await bcrypt.compare(data.currentPassword, user.password))) {
+                throw new common_1.BadRequestException('Senha atual incorreta');
+            }
+        }
+        if (data.newPassword === '123456') {
+            throw new common_1.BadRequestException('Nova senha não pode ser "123456"');
+        }
+        const hashedPassword = await bcrypt.hash(data.newPassword, 10);
+        await this.usersService.updatePasswordAfterChange(targetUserId, hashedPassword);
+        return {
+            message: 'Senha alterada com sucesso',
+            isFirstAccess: false
         };
     }
 };

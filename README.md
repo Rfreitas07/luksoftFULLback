@@ -128,3 +128,34 @@ docker start luksoft_backend
 
 # Verifique se os containers estão rodando:
 docker ps
+
+Configuração Docker e Banco de Dados - Lições Importantes
+Estrutura dos Containers
+Containers Necessários:
+
+luksoft_postgres: Container do PostgreSQL (sempre deve estar rodando primeiro)
+luksoft_backend: Container do NestJS (depende do PostgreSQL)
+
+Configuração de Rede:
+
+Ambos os containers devem estar na mesma rede Docker: luksoftfull_luksoft_network
+O backend conecta ao PostgreSQL usando hostname postgres (não localhost)
+
+Configuração do Banco de Dados
+Informações Críticas:
+typescript// app.module.ts - Configuração padrão
+TypeOrmModule.forRoot({
+  type: 'postgres',
+  host: process.env.DB_HOST || 'localhost',        // Para Docker: deve ser 'postgres'
+  port: parseInt(process.env.DB_PORT || '5432'),
+  username: process.env.DB_USERNAME || 'postgres',
+  password: process.env.DB_PASSWORD || 'password', // Padrão do sistema
+  database: process.env.DB_DATABASE || 'myapp',    // Nome correto do banco
+  autoLoadEntities: true,
+  synchronize: true, // Apenas desenvolvimento
+})
+Nome do Banco de Dados:
+
+Banco correto: myapp (conforme configuração no app.module.ts)
+Usuário: postgres
+Senha: password
